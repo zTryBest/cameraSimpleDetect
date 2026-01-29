@@ -1,0 +1,30 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 9000
+  },
+  "detection": {
+    "enabled": true,
+    "interval_ms": 500
+  },
+  "blacklist": {
+    "enabled": true,
+    "rules": [
+      {
+        "type": "ip",
+        "value": "192.168.1.10",
+        "description": "封禁指定摄像头 IP"
+      },
+      {
+        "type": "camera_id",
+        "value": "CAM-001",
+        "description": "封禁指定摄像头编号"
+      },
+      {
+        "type": "regex",
+        "value": "^test-.*",
+        "description": "按正则匹配封禁摄像头编号"
+      }
+    ]
+  }
+}

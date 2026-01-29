@@ -1,39 +1,81 @@
-# Camera Simple Detect
+# cameraSimpleDetect
 
-Windows-only console service that detects whether a camera device is **real**, **virtual**, or **not detected**, and pushes updates to connected WebSocket clients.
+用于摄像头检测与事件推送的简化服务。
 
-## Features
-- Enumerates camera devices via WMI on Windows.
-- Heuristic detection for virtual camera software.
-- WebSocket server for push notifications.
-- Low memory footprint: no frame capture, only device enumeration.
+## 系统要求
 
-## Requirements
-- Windows 10/11
-- .NET 6 SDK or runtime
+- Windows 10/11（64 位）
+- Microsoft Visual C++ 2015-2022 Redistributable (x64)
 
-## Configuration
-Environment variables (optional):
-- `CAMERA_WS_PORT` (default: `8787`)
-- `CAMERA_DETECT_INTERVAL_MS` (default: `2000`)
+## 快速启动
 
-## Run
-```bash
-dotnet run --project src/CameraSimpleDetect/CameraSimpleDetect.csproj
-```
+1. 复制配置模板并按需修改：
 
-## WebSocket
-Connect to:
-```
-ws://127.0.0.1:<PORT>/ws/
-```
+   ```powershell
+   copy .\configs\config.template.json .\configs\config.json
+   notepad .\configs\config.json
+   ```
 
-Message example:
+2. 启动服务（示例）：
+
+   ```powershell
+   .\cameraSimpleDetect.exe --config .\configs\config.json
+   ```
+
+3. 默认监听 `http://0.0.0.0:9000`，WebSocket 连接地址为 `ws://localhost:9000/ws`。
+
+## 配置说明
+
+配置模板位于 `configs/config.template.json`，包含端口、检测频率与黑名单规则：
+
+- `server.port`: 服务监听端口。
+- `detection.interval_ms`: 检测频率（毫秒）。
+- `blacklist.rules`: 黑名单规则数组，支持 `ip`、`camera_id`、`regex`。
+
+## WebSocket 协议
+
+### 消息格式
+
+所有消息采用 JSON：
+
 ```json
-{"status":"real_camera","timestamp":"2024-01-01T00:00:00Z"}
+{
+  "type": "event",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "data": {}
+}
 ```
 
-## Status values
-- `real_camera`
-- `virtual_camera`
-- `no_camera`
+字段说明：
+
+- `type`: 消息类型，常见为 `event`、`heartbeat`。
+- `timestamp`: ISO-8601 时间戳。
+- `data`: 业务数据负载。
+
+### 示例
+
+**检测事件**
+
+```json
+{
+  "type": "event",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "data": {
+    "camera_id": "CAM-001",
+    "label": "person",
+    "score": 0.96
+  }
+}
+```
+
+**心跳**
+
+```json
+{
+  "type": "heartbeat",
+  "timestamp": "2024-01-01T12:00:05Z",
+  "data": {
+    "status": "ok"
+  }
+}
+```
